@@ -1,66 +1,59 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 const { faker } = require('@faker-js/faker');
 const dotenv = require('dotenv');
+const User = require('../models/User');
+const Lead = require('../models/Lead');
+const connectDB = require('../config/db');
+
 dotenv.config();
 
-const Lead  = require('../models/Lead');
+const seedData = async () => {
+  try {
+    await connectDB();
 
-const seedLeads = async()=>{
-    try{
-        await mongoose.connect(process.env.MONGODB_URI,{
-            useNewUrlParser:true,
-            useUnifiedTopology:true,
-        });
-       console.log("MongoDB connected for seeding"); 
+    await User.deleteMany();
+    await Lead.deleteMany();
 
+    const hashedPassword = await bcrypt.hash('Test@1234', 10);
+    const testUser = await User.create({
+      email: 'testuser@example.com',
+      password: hashedPassword,
+    });
 
-        await Lead.deleteMany({});
+    console.log('Test User Created:', testUser.email);
 
-        const sources = ['website','facebook_ads','google_ads','referral','events','other'];
-        const statuses = ['new','contacted','qualified','lost','won'];
-        const leads = [];
+    const leads = [];
+    const sources = ['website', 'facebook_ads', 'google_ads', 'referral', 'events', 'other'];
+    const statuses = ['new', 'contacted', 'qualified', 'lost', 'won'];
 
-        for(let i=0;i<100;i++){
-            const firstName = faker.person.firstName();
-            const lastName = faker.person.lastName();
-            const email = faker.internet.email({ firstName, lastName });
-            const phone = faker.phone.number();
-            const company = faker.company.name();
-            const city = faker.location.city();
-            const state = faker.location.state();
-            const source = faker.helpers.arrayElement(sources);
-            const status = faker.helpers.arrayElement(statuses);
-            const score = faker.number.int({ min: 0, max: 100 });
-            const lead_value = faker.number.int({ min: 1000, max: 10000 });
-            const last_activity_at = faker.date.past({ years: 1 });
-            const is_qualified = faker.datatype.boolean();
+    for (let i = 0; i < 120; i++) {
+      leads.push({
+        user: testUser._id,
+        first_name: faker.person.firstName(),
+        last_name: faker.person.lastName(),
+        email: faker.internet.email(),
+        phone: faker.phone.number(),
+        company: faker.company.name(),
+        city: faker.location.city(),
+        state: faker.location.state(),
+        source: faker.helpers.arrayElement(sources),
+        status: faker.helpers.arrayElement(statuses),
+        score: faker.number.int({ min: 0, max: 100 }),
+        lead_value: faker.number.int({ min: 1000, max: 100000 }),
+        last_activity_at: faker.datatype.boolean() ? faker.date.recent({ days: 30 }) : null,
+        is_qualified: faker.datatype.boolean(),
+      });
+    }
 
-            leads.push({
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                phone,
-                company,
-                city,
-                state,
-                source,
-                status,
-                score,
-                lead_value,
-                last_activity_at,
-                is_qualified
-            });
-        }
+    await Lead.insertMany(leads);
+    console.log('120 Leads Seeded for test user');
 
-        await Lead.insertMany(leads);
-        console.log('seeded 100');
-        process.exit(0);
-            }
-            catch(error){
-                console.log('seeding error:',error);
-                process.exit(1);
-            }
-
+    process.exit();
+  } catch (error) {
+    console.error(error);
+    process.exit(1);
+  }
 };
 
-seedLeads();
+seedData();

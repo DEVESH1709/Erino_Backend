@@ -1,5 +1,5 @@
 const Lead = require('../models/Lead');
-const buildFilters = require('../utils/buildFilters');
+const buildFilters = require('../utils/filter');
 
 
 exports.createLead = async (req,res)=>{

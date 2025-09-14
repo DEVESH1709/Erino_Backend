@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const leadSchema  = new mongoose.Schema({
-   
+   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, 
   first_name: { type: String, required: true },
   last_name:  { type: String, required: true },
   email:      { type: String, required: true, unique: true },
