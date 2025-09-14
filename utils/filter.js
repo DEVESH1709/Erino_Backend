@@ -7,7 +7,7 @@ const buildFilters = (query)=>{
     const boolFields = ['is_qualified'];
 
 
-    object.keys(query).forEach((key)=>{
+    Object.keys(query).forEach((key)=>{
         if(key==='page'|| key==='limit') return;
 
         let field = key;
@@ -21,16 +21,16 @@ const buildFilters = (query)=>{
 
 
         const value = query[key];
-        if(stringFields.include(field)){
+        if(stringFields.includes(field)){
             if(operator==='contains'){
-                filter[field] ={$regex:value,$option:"i"};
+                filters[field] ={$regex:value,$options:"i"};
             }
             else if(operator ==='equals'){
                 filters[field] = value;
             }
 
         }
-        else if(enumFields.include(field)){
+        else if(enumFields.includes(field)){
             if(operator ==='in'){
                 filters[field] = {$in:value.split(',')};
 
@@ -38,8 +38,7 @@ const buildFilters = (query)=>{
                 filters[field]  = value;
             }
 
-        }else if(numberFields.include(field)){
-            const num = Number;
+        }else if(numberFields.includes(field)){
             if(operator =='gt'){
                 filters[field] = {$gt:Number(value)};
             }
@@ -56,7 +55,7 @@ const buildFilters = (query)=>{
             }
 
         }
-        else if(dateFields.include(field)){
+        else if(dateFields.includes(field)){
             if(operator =='on'){
                 const date = new Date(value);
                 const nextDay = new Date(value);
@@ -68,11 +67,11 @@ const buildFilters = (query)=>{
             }else if(operator ==='after'){
                 filters[field] ={$gt:new Date(value)};
             }else if (operator === 'between') {
-        const [start, end] = value.split(',');
-        filters[field] = { $gte: new Date(start), $lte: new Date(end) };
-      }
+                const [start, end] = value.split(',');
+                filters[field] = { $gte: new Date(start), $lte: new Date(end) };
+            }
         }
-        else if(boolFields.include(field)){
+        else if(boolFields.includes(field)){
            filters[field] = (value ===true || value ==='1');
         }
     });
